@@ -1,0 +1,697 @@
+{
+  "info": {
+    "name": "MedChain AI - Complete API",
+    "_postman_id": "medchain-ai-2026",
+    "description": "MedChain AI - AI-Powered Healthcare Records on Blockchain\n\nComplete REST API with 35+ endpoints.\n\n## Setup\n1. Import this collection\n2. Set `baseUrl` variable to your server (default: http://localhost:5000)\n3. Register a patient & doctor first\n4. Login to get JWT token (auto-saved)\n5. Test all endpoints!\n\n## Auth Flow\n- Register → Login → Token auto-saved → All APIs work\n- For wallet: Connect MetaMask → Sign message → Send signature",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000", "type": "string" },
+    { "key": "token", "value": "", "type": "string" },
+    { "key": "adminToken", "value": "", "type": "string" },
+    { "key": "doctorToken", "value": "", "type": "string" },
+    { "key": "patientId", "value": "", "type": "string" },
+    { "key": "doctorId", "value": "", "type": "string" },
+    { "key": "recordId", "value": "", "type": "string" },
+    { "key": "walletAddress", "value": "", "type": "string" }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+  },
+  "item": [
+    {
+      "name": "🔐 Auth",
+      "description": "Authentication - Register, Login, Wallet Connect",
+      "item": [
+        {
+          "name": "Register Patient",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.success) {",
+                  "  pm.collectionVariables.set('token', json.data.token);",
+                  "  pm.collectionVariables.set('patientId', json.data.user._id);",
+                  "  pm.collectionVariables.set('walletAddress', json.data.user.walletAddress || '');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Zakir Ahmed\",\n  \"email\": \"zakir@medchain.com\",\n  \"password\": \"password123\",\n  \"role\": \"patient\",\n  \"phone\": \"+923001234567\",\n  \"walletAddress\": \"0xYOUR_PATIENT_WALLET_ADDRESS\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/register", "host": ["{{baseUrl}}"], "path": ["api", "auth", "register"] }
+          }
+        },
+        {
+          "name": "Register Doctor",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.success) {",
+                  "  pm.collectionVariables.set('doctorToken', json.data.token);",
+                  "  pm.collectionVariables.set('doctorId', json.data.user._id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Dr. Ali Hassan\",\n  \"email\": \"dr.ali@medchain.com\",\n  \"password\": \"password123\",\n  \"role\": \"doctor\",\n  \"phone\": \"+923009876543\",\n  \"walletAddress\": \"0xYOUR_DOCTOR_WALLET_ADDRESS\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/register", "host": ["{{baseUrl}}"], "path": ["api", "auth", "register"] }
+          }
+        },
+        {
+          "name": "Register Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.success) {",
+                  "  pm.collectionVariables.set('adminToken', json.data.token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Admin MedChain\",\n  \"email\": \"admin@medchain.com\",\n  \"password\": \"admin123456\",\n  \"role\": \"admin\",\n  \"phone\": \"+923005555555\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/register", "host": ["{{baseUrl}}"], "path": ["api", "auth", "register"] }
+          }
+        },
+        {
+          "name": "Login (Patient)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.success) {",
+                  "  pm.collectionVariables.set('token', json.data.token);",
+                  "  pm.collectionVariables.set('patientId', json.data.user._id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"zakir@medchain.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"] }
+          }
+        },
+        {
+          "name": "Login (Doctor)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.success) {",
+                  "  pm.collectionVariables.set('doctorToken', json.data.token);",
+                  "  pm.collectionVariables.set('doctorId', json.data.user._id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"dr.ali@medchain.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"] }
+          }
+        },
+        {
+          "name": "Login (Admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.success) {",
+                  "  pm.collectionVariables.set('adminToken', json.data.token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@medchain.com\",\n  \"password\": \"admin123456\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"] }
+          }
+        },
+        {
+          "name": "Wallet Login (MetaMask)",
+          "description": "Sign a message in MetaMask, paste the signature here.\n\nHow to get signature:\n1. Open browser console\n2. Run: await ethereum.request({method: 'personal_sign', params: ['Login to MedChain AI', YOUR_ADDRESS]})\n3. Copy the returned signature",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"walletAddress\": \"0xYOUR_WALLET_ADDRESS\",\n  \"message\": \"Login to MedChain AI\",\n  \"signature\": \"0xYOUR_METAMASK_SIGNATURE\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/wallet-login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "wallet-login"] }
+          }
+        },
+        {
+          "name": "Connect Wallet to Account",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"walletAddress\": \"0xYOUR_WALLET_ADDRESS\",\n  \"message\": \"Connect wallet to MedChain AI\",\n  \"signature\": \"0xYOUR_METAMASK_SIGNATURE\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/connect-wallet", "host": ["{{baseUrl}}"], "path": ["api", "auth", "connect-wallet"] }
+          }
+        },
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/auth/profile", "host": ["{{baseUrl}}"], "path": ["api", "auth", "profile"] }
+          }
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Zakir Ahmed Updated\",\n  \"phone\": \"+923001234568\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/profile", "host": ["{{baseUrl}}"], "path": ["api", "auth", "profile"] }
+          }
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"password123\",\n  \"newPassword\": \"newpassword456\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/change-password", "host": ["{{baseUrl}}"], "path": ["api", "auth", "change-password"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🏥 Patient",
+      "description": "Patient registration, profile, emergency info",
+      "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+      "item": [
+        {
+          "name": "Submit On-Chain Registration",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bloodType\": \"O+\",\n  \"allergies\": \"Penicillin,Aspirin\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/patients/register-onchain", "host": ["{{baseUrl}}"], "path": ["api", "patients", "register-onchain"] }
+          }
+        },
+        {
+          "name": "Get My Profile",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/patients/me", "host": ["{{baseUrl}}"], "path": ["api", "patients", "me"] }
+          }
+        },
+        {
+          "name": "Update Emergency Info",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bloodType\": \"O+\",\n  \"allergies\": \"Penicillin\",\n  \"emergencyContact\": {\n    \"name\": \"Ahmed Khan\",\n    \"phone\": \"+923001112233\",\n    \"relationship\": \"Brother\"\n  }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/patients/emergency-info", "host": ["{{baseUrl}}"], "path": ["api", "patients", "emergency-info"] }
+          }
+        },
+        {
+          "name": "Get Patient by ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/patients/{{patientId}}", "host": ["{{baseUrl}}"], "path": ["api", "patients", "{{patientId}}"] }
+          }
+        },
+        {
+          "name": "Deactivate Account",
+          "request": {
+            "method": "PUT",
+            "url": { "raw": "{{baseUrl}}/api/patients/deactivate", "host": ["{{baseUrl}}"], "path": ["api", "patients", "deactivate"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "👨‍⚕️ Doctor",
+      "description": "Doctor application, profile, listing, rating",
+      "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{doctorToken}}", "type": "string" }] },
+      "item": [
+        {
+          "name": "Submit Application",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"specialization\": \"Cardiology\",\n  \"licenseNumber\": \"PMC-2024-12345\",\n  \"credentials\": \"MBBS from King Edward Medical, FCPS Cardiology\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/doctors/apply", "host": ["{{baseUrl}}"], "path": ["api", "doctors", "apply"] }
+          }
+        },
+        {
+          "name": "Get My Doctor Profile",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/doctors/me", "host": ["{{baseUrl}}"], "path": ["api", "doctors", "me"] }
+          }
+        },
+        {
+          "name": "List Verified Doctors",
+          "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/doctors/list?specialization=Cardiology&page=1&limit=10",
+              "host": ["{{baseUrl}}"], "path": ["api", "doctors", "list"],
+              "query": [
+                { "key": "specialization", "value": "Cardiology" },
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Doctor by ID",
+          "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/doctors/{{doctorId}}", "host": ["{{baseUrl}}"], "path": ["api", "doctors", "{{doctorId}}"] }
+          }
+        },
+        {
+          "name": "Rate Doctor (Patient)",
+          "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"rating\": 5\n}" },
+            "url": { "raw": "{{baseUrl}}/api/doctors/{{doctorId}}/rate", "host": ["{{baseUrl}}"], "path": ["api", "doctors", "{{doctorId}}", "rate"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📋 Medical Records",
+      "description": "Create, view, amend, archive, verify records",
+      "item": [
+        {
+          "name": "Create Record (Patient)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.success) { pm.collectionVariables.set('recordId', json.data.record._id); }"
+                ]
+              }
+            }
+          ],
+          "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Blood Test Report - Feb 2026\",\n  \"description\": \"Complete blood count and metabolic panel\",\n  \"recordType\": \"LabReport\",\n  \"data\": {\n    \"hemoglobin\": \"14.5 g/dL\",\n    \"WBC\": \"7200/mcL\",\n    \"platelets\": \"250000/mcL\",\n    \"glucose\": \"95 mg/dL\",\n    \"cholesterol\": \"180 mg/dL\"\n  },\n  \"tags\": [\"blood-test\", \"annual-checkup\"]\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/records", "host": ["{{baseUrl}}"], "path": ["api", "records"] }
+          }
+        },
+        {
+          "name": "Get My Records",
+          "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/records/my-records?recordType=LabReport&page=1",
+              "host": ["{{baseUrl}}"], "path": ["api", "records", "my-records"],
+              "query": [
+                { "key": "recordType", "value": "LabReport", "disabled": true },
+                { "key": "page", "value": "1" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Record by ID",
+          "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/records/{{recordId}}", "host": ["{{baseUrl}}"], "path": ["api", "records", "{{recordId}}"] }
+          }
+        },
+        {
+          "name": "Get Patient Records (Doctor)",
+          "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{doctorToken}}", "type": "string" }] },
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/records/patient/{{patientId}}", "host": ["{{baseUrl}}"], "path": ["api", "records", "patient", "{{patientId}}"] }
+          }
+        },
+        {
+          "name": "Amend Record",
+          "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Updated with corrected cholesterol value\",\n  \"data\": {\n    \"hemoglobin\": \"14.5 g/dL\",\n    \"cholesterol\": \"175 mg/dL\",\n    \"correctedBy\": \"Lab technician\"\n  }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/records/{{recordId}}/amend", "host": ["{{baseUrl}}"], "path": ["api", "records", "{{recordId}}", "amend"] }
+          }
+        },
+        {
+          "name": "Archive Record",
+          "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+          "request": {
+            "method": "PUT",
+            "url": { "raw": "{{baseUrl}}/api/records/{{recordId}}/archive", "host": ["{{baseUrl}}"], "path": ["api", "records", "{{recordId}}", "archive"] }
+          }
+        },
+        {
+          "name": "Verify Record Integrity",
+          "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/records/{{recordId}}/verify", "host": ["{{baseUrl}}"], "path": ["api", "records", "{{recordId}}", "verify"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔑 Access Control",
+      "description": "Grant, revoke, request access permissions",
+      "item": [
+        {
+          "name": "Grant Access (Patient→Doctor)",
+          "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"doctorId\": \"{{doctorId}}\",\n  \"accessLevel\": \"ReadOnly\",\n  \"duration\": 2592000,\n  \"allowedRecordTypes\": [0, 1, 3],\n  \"purpose\": \"Annual health checkup consultation\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/access/grant", "host": ["{{baseUrl}}"], "path": ["api", "access", "grant"] }
+          }
+        },
+        {
+          "name": "Revoke Access (Patient)",
+          "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"doctorId\": \"{{doctorId}}\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/access/revoke", "host": ["{{baseUrl}}"], "path": ["api", "access", "revoke"] }
+          }
+        },
+        {
+          "name": "Request Access (Doctor→Patient)",
+          "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{doctorToken}}", "type": "string" }] },
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"patientId\": \"{{patientId}}\",\n  \"accessLevel\": \"ReadOnly\",\n  \"requestedTypes\": [0, 3],\n  \"reason\": \"Need lab reports for cardiac evaluation\",\n  \"duration\": 604800\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/access/request", "host": ["{{baseUrl}}"], "path": ["api", "access", "request"] }
+          }
+        },
+        {
+          "name": "Approve Request (Patient)",
+          "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"requestId\": \"MONGODB_REQUEST_ID\",\n  \"onChainRequestId\": 1\n}" },
+            "url": { "raw": "{{baseUrl}}/api/access/approve", "host": ["{{baseUrl}}"], "path": ["api", "access", "approve"] }
+          }
+        },
+        {
+          "name": "Reject Request (Patient)",
+          "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"requestId\": \"MONGODB_REQUEST_ID\",\n  \"onChainRequestId\": 1\n}" },
+            "url": { "raw": "{{baseUrl}}/api/access/reject", "host": ["{{baseUrl}}"], "path": ["api", "access", "reject"] }
+          }
+        },
+        {
+          "name": "Get My Permissions",
+          "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/access/permissions?page=1&limit=20", "host": ["{{baseUrl}}"], "path": ["api", "access", "permissions"] }
+          }
+        },
+        {
+          "name": "Get Audit Trail (Admin)",
+          "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{adminToken}}", "type": "string" }] },
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/access/audit?page=1&limit=50", "host": ["{{baseUrl}}"], "path": ["api", "access", "audit"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🤖 AI Services",
+      "description": "Symptom checker, report summary, drug interaction, health insights, chat",
+      "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+      "item": [
+        {
+          "name": "Symptom Check",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"symptoms\": \"I have been experiencing persistent headaches for the past 3 days, along with mild fever (99.5°F), fatigue, and occasional dizziness when standing up quickly.\",\n  \"age\": 28\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/ai/symptom-check", "host": ["{{baseUrl}}"], "path": ["api", "ai", "symptom-check"] }
+          }
+        },
+        {
+          "name": "Summarize Medical Report",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reportText\": \"Patient: Male, 28 years. CBC Results - Hemoglobin: 14.5 g/dL (Normal: 13.5-17.5), WBC: 7,200/mcL (Normal: 4,500-11,000), Platelets: 250,000/mcL (Normal: 150,000-400,000), RBC: 5.1 M/mcL (Normal: 4.7-6.1). Metabolic Panel - Glucose: 95 mg/dL (Normal: 70-100), BUN: 15 mg/dL (Normal: 7-20), Creatinine: 0.9 mg/dL (Normal: 0.7-1.3), Total Cholesterol: 210 mg/dL (Borderline High >200), LDL: 140 mg/dL (Borderline High >130), HDL: 45 mg/dL (Low <60).\",\n  \"recordType\": \"LabReport\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/ai/summarize-report", "host": ["{{baseUrl}}"], "path": ["api", "ai", "summarize-report"] }
+          }
+        },
+        {
+          "name": "Drug Interaction Check",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"medications\": [\"Metformin 500mg\", \"Lisinopril 10mg\", \"Aspirin 75mg\", \"Atorvastatin 20mg\"]\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/ai/drug-interaction", "host": ["{{baseUrl}}"], "path": ["api", "ai", "drug-interaction"] }
+          }
+        },
+        {
+          "name": "Health Insights",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"healthData\": {\n    \"age\": 28,\n    \"weight\": \"75kg\",\n    \"height\": \"5'10\",\n    \"exercise\": \"3 times/week\",\n    \"sleep\": \"6-7 hours\",\n    \"smoking\": false,\n    \"recentLabs\": {\n      \"cholesterol\": 210,\n      \"glucose\": 95,\n      \"bp\": \"120/80\"\n    }\n  }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/ai/health-insights", "host": ["{{baseUrl}}"], "path": ["api", "ai", "health-insights"] }
+          }
+        },
+        {
+          "name": "Medical Chat",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"What are some natural ways to lower cholesterol without medication?\",\n  \"conversationHistory\": []\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/ai/chat", "host": ["{{baseUrl}}"], "path": ["api", "ai", "chat"] }
+          }
+        },
+        {
+          "name": "Get AI History",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/ai/history?type=symptom-check&page=1",
+              "host": ["{{baseUrl}}"], "path": ["api", "ai", "history"],
+              "query": [{ "key": "type", "value": "symptom-check", "disabled": true }, { "key": "page", "value": "1" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "⚙️ Admin Panel",
+      "description": "Dashboard, user management, verification, audit",
+      "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{adminToken}}", "type": "string" }] },
+      "item": [
+        {
+          "name": "Dashboard Stats",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/admin/dashboard", "host": ["{{baseUrl}}"], "path": ["api", "admin", "dashboard"] }
+          }
+        },
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/users?role=doctor&search=&page=1&limit=20",
+              "host": ["{{baseUrl}}"], "path": ["api", "admin", "users"],
+              "query": [
+                { "key": "role", "value": "doctor", "disabled": true },
+                { "key": "search", "value": "", "disabled": true },
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Verify Doctor",
+          "request": {
+            "method": "PUT",
+            "url": { "raw": "{{baseUrl}}/api/admin/verify-doctor/{{doctorId}}", "host": ["{{baseUrl}}"], "path": ["api", "admin", "verify-doctor", "{{doctorId}}"] }
+          }
+        },
+        {
+          "name": "Reject Doctor",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"reason\": \"License number could not be verified with PMC records\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/admin/reject-doctor/{{doctorId}}", "host": ["{{baseUrl}}"], "path": ["api", "admin", "reject-doctor", "{{doctorId}}"] }
+          }
+        },
+        {
+          "name": "Suspend Doctor",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"reason\": \"Under investigation for credential discrepancy\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/admin/suspend-doctor/{{doctorId}}", "host": ["{{baseUrl}}"], "path": ["api", "admin", "suspend-doctor", "{{doctorId}}"] }
+          }
+        },
+        {
+          "name": "Approve Patient Registration",
+          "request": {
+            "method": "PUT",
+            "url": { "raw": "{{baseUrl}}/api/admin/approve-patient/{{patientId}}", "host": ["{{baseUrl}}"], "path": ["api", "admin", "approve-patient", "{{patientId}}"] }
+          }
+        },
+        {
+          "name": "Reject Patient Registration",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"reason\": \"Incomplete identity documents\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/admin/reject-patient/{{patientId}}", "host": ["{{baseUrl}}"], "path": ["api", "admin", "reject-patient", "{{patientId}}"] }
+          }
+        },
+        {
+          "name": "Get Audit Logs",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/admin/audit-logs?page=1&limit=50", "host": ["{{baseUrl}}"], "path": ["api", "admin", "audit-logs"] }
+          }
+        },
+        {
+          "name": "AI Analytics",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/admin/ai-analytics", "host": ["{{baseUrl}}"], "path": ["api", "admin", "ai-analytics"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "💚 Health Check",
+      "item": [
+        {
+          "name": "API Health Check",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/health", "host": ["{{baseUrl}}"], "path": ["api", "health"] }
+          }
+        }
+      ]
+    }
+  ]
+}

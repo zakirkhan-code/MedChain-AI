@@ -1,0 +1,26 @@
+{
+  "expo": {
+    "name": "MedChain AI",
+    "slug": "medchain-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "backgroundColor": "#0D3B66",
+      "resizeMode": "contain"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.medchain.ai"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#0D3B66"
+      },
+      "package": "com.medchain.ai"
+    },
+    "plugins": [
+      "expo-document-picker"
+    ]
+  }
+}

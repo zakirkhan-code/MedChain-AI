@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+.expo/
+
+# Environment
+.env
+.env.local
+
+# Build
+dist/
+build/
+artifacts/
+cache/
+typechain-types/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+npm-debug.log*
