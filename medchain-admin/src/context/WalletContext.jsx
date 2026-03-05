@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from "react";
-import { connectMetaMask, switchToSepolia, listenAccountChanges, formatAddress } from "../services/wallet";
+import { connectMetaMask, formatAddress } from "../services/blockchain";
 
 const WalletContext = createContext();
 export const useWallet = () => useContext(WalletContext);
@@ -10,19 +10,21 @@ export function WalletProvider({ children }) {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    listenAccountChanges((accounts) => {
-      if (accounts.length === 0) setWallet(null);
-      else setWallet((prev) => prev ? { ...prev, address: accounts[0] } : null);
-    });
+    if (window.ethereum) {
+      window.ethereum.on("accountsChanged", (accounts) => {
+        if (accounts.length === 0) setWallet(null);
+        else setWallet(prev => prev ? { ...prev, address: accounts[0] } : null);
+      });
+      window.ethereum.on("chainChanged", () => window.location.reload());
+    }
   }, []);
 
   const connect = async () => {
     setConnecting(true);
     setError("");
     try {
-      await switchToSepolia();
       const result = await connectMetaMask();
-      if (result.chainId !== 11155111) {
+      if (!result.isCorrectNetwork) {
         throw new Error("Please switch to Sepolia network");
       }
       setWallet(result);
@@ -35,15 +37,14 @@ export function WalletProvider({ children }) {
     }
   };
 
-  const disconnect = () => {
-    setWallet(null);
-  };
+  const disconnect = () => setWallet(null);
 
   return (
     <WalletContext.Provider value={{
       wallet, connecting, error, connect, disconnect,
-      address: wallet?.address, signer: wallet?.signer, provider: wallet?.provider,
-      isConnected: !!wallet, formatted: formatAddress(wallet?.address),
+      address: wallet?.address,
+      isConnected: !!wallet,
+      formatted: formatAddress(wallet?.address),
     }}>
       {children}
     </WalletContext.Provider>

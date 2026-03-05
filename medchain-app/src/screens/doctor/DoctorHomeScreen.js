@@ -67,10 +67,10 @@ export default function DoctorHomeScreen({ navigation }) {
       <View style={styles.content}>
         <View style={styles.actionsGrid}>
           {[
+            { icon: "shield-checkmark", label: "Blockchain", screen: "OnChainApply", color: COLORS.success },
             { icon: "people", label: "My Patients", screen: "MyPatients", color: COLORS.info },
             { icon: "chatbubbles", label: "AI Chat", screen: "AIChat", color: COLORS.purple },
             { icon: "person-circle", label: "Profile", screen: "DoctorProfile", color: COLORS.secondary },
-            { icon: "notifications", label: "Alerts", screen: "Notifications", color: COLORS.accent },
           ].map((a) => (
             <TouchableOpacity key={a.label} style={styles.actionCard} onPress={() => navigation.navigate(a.screen)} activeOpacity={0.8}>
               <View style={[styles.actionIcon, { backgroundColor: a.color + "15" }]}>

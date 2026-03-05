@@ -21,7 +21,7 @@ export default function WalletButton() {
   return (
     <div className="flex items-center gap-2">
       <button onClick={connect} disabled={connecting}
-        className="flex items-center gap-2 px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary-light disabled:opacity-60 transition-colors">
+        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-60 transition-colors">
         {connecting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wallet className="w-4 h-4" />}
         {connecting ? "Connecting..." : "Connect MetaMask"}
       </button>

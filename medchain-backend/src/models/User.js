@@ -4,7 +4,7 @@ const bcrypt = require("bcryptjs");
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true, trim: true },
   cnic: { type: String,unique: true,sparse: true,trim: true,match: [/^\d{5}-\d{7}-\d{1}$/, "CNIC format: XXXXX-XXXXXXX-X"],},
-  email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+  email: { type: String, unique: true,sparse: true, lowercase: true, trim: true },
   password: { type: String, required: true, minlength: 6 },
   walletAddress: { type: String, unique: true, sparse: true, lowercase: true },
   role: { type: String, enum: ["patient", "doctor", "admin", "operator"], required: true },
@@ -33,7 +33,11 @@ const userSchema = new mongoose.Schema({
   totalPatients: { type: Number, default: 0 },
   fcmToken: { type: String },
   lastLogin: { type: Date },
-  txHashes: [{ type: String }],
+  txHashes: [{
+      type: String,
+    }],
+    rejectionReason: String,
+    suspensionReason: String,
 }, { timestamps: true });
 
 userSchema.pre("save", async function () {

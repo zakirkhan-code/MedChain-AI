@@ -10,6 +10,8 @@ import { COLORS } from "../utils/theme";
 import WalletConnectScreen from "../screens/auth/WalletConnectScreen";
 import ConnectWalletScreen from "../screens/shared/ConnectWalletScreen";
 import LoginScreen from "../screens/auth/LoginScreen";
+import OnChainRegisterScreen from "../screens/patient/OnChainRegisterScreen";
+import OnChainApplyScreen from "../screens/doctor/OnChainApplyScreen";
 import RegisterScreen from "../screens/auth/RegisterScreen";
 import PatientHomeScreen from "../screens/patient/PatientHomeScreen";
 import RecordsScreen from "../screens/patient/RecordsScreen";
@@ -102,6 +104,8 @@ function AppStack() {
       <Stack.Screen name="EditProfile" component={EditProfileScreen} options={{ title: "Edit Profile" }} />
       <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} options={{ title: "Change Password" }} />
       <Stack.Screen name="Notifications" component={NotificationsScreen} options={{ title: "Notifications" }} />
+      <Stack.Screen name="OnChainRegister" component={OnChainRegisterScreen} options={{ title: "Blockchain Registration" }} />
+      <Stack.Screen name="OnChainApply" component={OnChainApplyScreen} options={{ title: "Blockchain Verification" }} />
       <Stack.Screen name="ConnectWallet" component={ConnectWalletScreen} options={{ title: "Connect Wallet" }} />
     </Stack.Navigator>
   );

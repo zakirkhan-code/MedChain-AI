@@ -1,5 +1,6 @@
 const MedicalRecord = require("../models/MedicalRecord");
 const User = require("../models/User");
+const blockchain = require("../services/blockchain.service");
 const { asyncHandler } = require("../middleware/errorHandler");
 const { uploadEncryptedRecord, fetchFromIPFS } = require("../services/ipfs.service");
 const { hashData, createRecordOnChain, amendRecordOnChain, verifyRecordOnChain } = require("../services/blockchain.service");
@@ -42,6 +43,20 @@ exports.createRecord = asyncHandler(async (req, res) => {
 
   patient.totalRecords = (patient.totalRecords || 0) + 1;
   await patient.save();
+  if (req.user.walletAddress) {
+  const chainResult = await blockchain.createRecordOnChain(
+    req.user.walletAddress,
+    record.contentHash,
+    record.recordType,
+    record.ipfsURI || ""
+  );
+
+  if (chainResult.success) {
+    record.txHash = chainResult.txHash;
+    record.blockNumber = chainResult.blockNumber;
+    await record.save();
+  }
+}
 
   res.status(201).json({ success: true, data: { record, ipfs: ipfsResult, tx: txResult } });
 });

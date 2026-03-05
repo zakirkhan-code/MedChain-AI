@@ -30,10 +30,10 @@ export default function PatientHomeScreen({ navigation }) {
   const [statusLabel, statusVariant] = statusMap[user?.onChainStatus] || ["Unknown", "default"];
 
   const quickActions = [
+    { icon: "shield-checkmark", label: "Blockchain", screen: "OnChainRegister", color: COLORS.success },
     { icon: "document-text", label: "Records", screen: "Records", color: COLORS.info },
     { icon: "medkit", label: "Doctors", screen: "DoctorList", color: COLORS.secondary },
     { icon: "chatbubbles", label: "AI Chat", screen: "AIChat", color: COLORS.purple },
-    { icon: "shield-checkmark", label: "Access", screen: "Access", color: COLORS.accent },
   ];
 
   return (

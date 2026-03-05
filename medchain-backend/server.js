@@ -28,6 +28,7 @@ const patientRoutes = require("./src/routes/patient.routes");
 const doctorRoutes = require("./src/routes/doctor.routes");
 const recordRoutes = require("./src/routes/record.routes");
 const accessRoutes = require("./src/routes/access.routes");
+const blockchain = require("./src/services/blockchain.service");
 const transactionRoutes = require("./src/routes/transaction.routes");
 const aiRoutes = require("./src/routes/ai.routes");
 const adminRoutes = require("./src/routes/admin.routes");
@@ -67,5 +68,6 @@ connectDB().then(() => {
     console.log(`MedChain AI Backend running on port ${PORT}`);
   });
 });
+blockchain.initialize();
 
 module.exports = app;
