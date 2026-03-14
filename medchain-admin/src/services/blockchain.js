@@ -43,7 +43,9 @@ const getReadContract = async (name) => {
 export const connectMetaMask = async () => {
   if (!window.ethereum) throw new Error("MetaMask not installed");
 
-  const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+  const accounts = await window.ethereum.request({
+    method: "eth_requestAccounts",
+  });
   const address = accounts[0];
 
   // Switch to Sepolia
@@ -56,13 +58,15 @@ export const connectMetaMask = async () => {
     if (err.code === 4902) {
       await window.ethereum.request({
         method: "wallet_addEthereumChain",
-        params: [{
-          chainId: "0xaa36a7",
-          chainName: "Sepolia Testnet",
-          nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 },
-          rpcUrls: ["https://rpc.sepolia.org"],
-          blockExplorerUrls: ["https://sepolia.etherscan.io"],
-        }],
+        params: [
+          {
+            chainId: "0xaa36a7",
+            chainName: "Sepolia Testnet",
+            nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 },
+            rpcUrls: ["https://rpc.sepolia.org"],
+            blockExplorerUrls: ["https://sepolia.etherscan.io"],
+          },
+        ],
       });
     }
   }
@@ -107,7 +111,9 @@ export const getPatientStatus = async (address) => {
     const contract = await getReadContract("PatientRegistry");
     const status = await contract.getPatientStatus(address);
     return Number(status);
-  } catch { return 0; }
+  } catch {
+    return 0;
+  }
 };
 
 export const getDoctorStatus = async (address) => {
@@ -115,7 +121,9 @@ export const getDoctorStatus = async (address) => {
     const contract = await getReadContract("DoctorRegistry");
     const status = await contract.getDocStatus(address);
     return Number(status);
-  } catch { return 0; }
+  } catch {
+    return 0;
+  }
 };
 
 export const getPatientProfile = async (address) => {
@@ -132,7 +140,9 @@ export const getPatientProfile = async (address) => {
       allergies: data.allergies,
       registeredAt: Number(data.registeredAt),
     };
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 };
 
 export const getDoctorProfile = async (address) => {
@@ -148,21 +158,27 @@ export const getDoctorProfile = async (address) => {
       totalPatients: Number(data.totalPatients),
       registeredAt: Number(data.registeredAt),
     };
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 };
 
 export const getPendingPatients = async () => {
   try {
     const contract = await getReadContract("PatientRegistry");
     return await contract.getPendingList();
-  } catch { return []; }
+  } catch {
+    return [];
+  }
 };
 
 export const getPendingDoctors = async () => {
   try {
     const contract = await getReadContract("DoctorRegistry");
     return await contract.getPendingList();
-  } catch { return []; }
+  } catch {
+    return [];
+  }
 };
 
 // ==========================================
@@ -175,7 +191,7 @@ export const verifyDoctorOnChain = async (doctorAddress) => {
   const tx = await contract.verifyDoctor(doctorAddress);
   console.log(`⏳ Waiting... Tx: ${tx.hash}`);
   const receipt = await tx.wait();
-  console.log(`✅ Doctor verified! Block: ${receipt.blockNumber}`);
+  console.log(` Doctor verified! Block: ${receipt.blockNumber}`);
   return { txHash: receipt.hash, blockNumber: Number(receipt.blockNumber) };
 };
 
@@ -224,7 +240,7 @@ export const approvePatientOnChain = async (patientAddress) => {
   console.log(`📤 Approving patient: ${patientAddress}`);
   const tx = await contract.approveRegistration(patientAddress);
   const receipt = await tx.wait();
-  console.log(`✅ Patient approved! Block: ${receipt.blockNumber}`);
+  console.log(` Patient approved! Block: ${receipt.blockNumber}`);
   return { txHash: receipt.hash, blockNumber: Number(receipt.blockNumber) };
 };
 
@@ -265,5 +281,18 @@ export const unpausePlatform = async () => {
 //  STATUS MAPS
 // ==========================================
 
-export const PATIENT_STATUS = { 0: "None", 1: "Pending", 2: "Approved", 3: "Rejected", 4: "Active", 5: "Deactivated" };
-export const DOCTOR_STATUS = { 0: "None", 1: "Pending", 2: "Verified", 3: "Rejected", 4: "Suspended" };
+export const PATIENT_STATUS = {
+  0: "None",
+  1: "Pending",
+  2: "Approved",
+  3: "Rejected",
+  4: "Active",
+  5: "Deactivated",
+};
+export const DOCTOR_STATUS = {
+  0: "None",
+  1: "Pending",
+  2: "Verified",
+  3: "Rejected",
+  4: "Suspended",
+};

@@ -5,7 +5,7 @@ import { accessAPI } from "../../services/api";
 import { Card, Badge } from "../../components/common";
 import { COLORS, SIZES } from "../../utils/theme";
 
-export default function AccessScreen({ navigation }) {
+export default function MyPatientsScreen({ navigation }) {
   const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(true);
 

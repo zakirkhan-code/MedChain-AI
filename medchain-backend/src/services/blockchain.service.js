@@ -44,15 +44,21 @@ const initialize = () => {
     };
 
     for (const [name, address] of Object.entries(map)) {
-      if (!address) { console.warn(`⚠️ ${name} address not set`); continue; }
+      if (!address) {
+        console.warn(`⚠️ ${name} address not set`);
+        continue;
+      }
       const abi = loadABI(name);
-      if (!abi) { console.warn(`⚠️ ${name} ABI not found`); continue; }
+      if (!abi) {
+        console.warn(`⚠️ ${name} ABI not found`);
+        continue;
+      }
       contracts[name] = new ethers.Contract(address, abi, wallet);
-      console.log(`✅ ${name} → ${address}`);
+      console.log(` ${name} → ${address}`);
     }
 
     initialized = true;
-    console.log("✅ Blockchain service ready");
+    console.log(" Blockchain service ready");
     return true;
   } catch (err) {
     console.error("❌ Blockchain init failed:", err.message);
@@ -60,7 +66,10 @@ const initialize = () => {
   }
 };
 
-const c = (name) => { initialize(); return contracts[name] || null; };
+const c = (name) => {
+  initialize();
+  return contracts[name] || null;
+};
 
 // ==========================================
 //  UTILITY
@@ -102,7 +111,7 @@ const approvePatientOnChain = async (patientAddress) => {
     console.log(`📤 Approving patient: ${patientAddress}`);
     const tx = await contract.approveRegistration(patientAddress);
     const receipt = await tx.wait();
-    console.log(`✅ Patient approved. Block: ${receipt.blockNumber}`);
+    console.log(` Patient approved. Block: ${receipt.blockNumber}`);
     return { txHash: receipt.hash, blockNumber: receipt.blockNumber };
   });
 };
@@ -123,7 +132,9 @@ const getPatientOnChain = async (patientAddress) => {
     if (!contract) return null;
     const status = await contract.getPatientStatus(patientAddress);
     return { status: Number(status) };
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 };
 
 const getPatientProfile = async (patientAddress) => {
@@ -141,7 +152,9 @@ const getPatientProfile = async (patientAddress) => {
       allergies: data.allergies,
       registeredAt: Number(data.registeredAt),
     };
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 };
 
 // ==========================================
@@ -165,7 +178,7 @@ const verifyDoctorOnChain = async (doctorAddress) => {
     console.log(`📤 Verifying doctor: ${doctorAddress}`);
     const tx = await contract.verifyDoctor(doctorAddress);
     const receipt = await tx.wait();
-    console.log(`✅ Doctor verified. Block: ${receipt.blockNumber}`);
+    console.log(` Doctor verified. Block: ${receipt.blockNumber}`);
     return { txHash: receipt.hash, blockNumber: receipt.blockNumber };
   });
 };
@@ -196,7 +209,9 @@ const getDoctorOnChain = async (doctorAddress) => {
     if (!contract) return null;
     const status = await contract.getDocStatus(doctorAddress);
     return { status: Number(status) };
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 };
 
 const getDoctorProfile = async (doctorAddress) => {
@@ -214,7 +229,9 @@ const getDoctorProfile = async (doctorAddress) => {
       totalPatients: Number(data.totalPatients),
       registeredAt: Number(data.registeredAt),
     };
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 };
 
 // ==========================================
@@ -222,16 +239,32 @@ const getDoctorProfile = async (doctorAddress) => {
 // ==========================================
 
 // createRecord CAN be called by deployer (if deployer has DOCTOR/ADMIN role)
-// createRecord(address _patient, bytes32 _contentHash, string _ipfsURI, 
+// createRecord(address _patient, bytes32 _contentHash, string _ipfsURI,
 //              string _encryptionKeyHash, uint8 _recordType, string _description)
 
-const createRecordOnChain = async (patientAddress, contentHash, ipfsURI, encryptionKeyHash, recordType, description) => {
+const createRecordOnChain = async (
+  patientAddress,
+  contentHash,
+  ipfsURI,
+  encryptionKeyHash,
+  recordType,
+  description,
+) => {
   return safeTx("createRecord", async () => {
     const contract = c("RecordManager");
     if (!contract) throw new Error("RecordManager not available");
 
     // Map recordType string to uint8
-    const typeMap = { LabReport: 0, Prescription: 1, Imaging: 2, Diagnosis: 3, Vaccination: 4, Surgery: 5, Discharge: 6, Other: 7 };
+    const typeMap = {
+      LabReport: 0,
+      Prescription: 1,
+      Imaging: 2,
+      Diagnosis: 3,
+      Vaccination: 4,
+      Surgery: 5,
+      Discharge: 6,
+      Other: 7,
+    };
     const typeNum = typeMap[recordType] !== undefined ? typeMap[recordType] : 7;
 
     console.log(`📤 Creating record on-chain for: ${patientAddress}`);
@@ -241,10 +274,10 @@ const createRecordOnChain = async (patientAddress, contentHash, ipfsURI, encrypt
       ipfsURI || "",
       encryptionKeyHash || "",
       typeNum,
-      description || ""
+      description || "",
     );
     const receipt = await tx.wait();
-    console.log(`✅ Record created on-chain. Block: ${receipt.blockNumber}`);
+    console.log(` Record created on-chain. Block: ${receipt.blockNumber}`);
     return { txHash: receipt.hash, blockNumber: receipt.blockNumber };
   });
 };
@@ -255,7 +288,9 @@ const verifyRecordOnChain = async (recordId, contentHash) => {
     if (!contract) return null;
     const result = await contract.verifyRecord(recordId, contentHash);
     return result;
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 };
 
 const getRecordOnChain = async (recordId) => {
@@ -272,7 +307,9 @@ const getRecordOnChain = async (recordId) => {
       version: Number(data.version),
       createdAt: Number(data.createdAt),
     };
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 };
 
 // ==========================================
@@ -288,7 +325,10 @@ const grantEmergencyAccess = async (patientAddress, providerAddress) => {
   return safeTx("emergencyAccess", async () => {
     const contract = c("MedChainAccessControl");
     if (!contract) throw new Error("AccessControl not available");
-    const tx = await contract.grantEmergencyAccess(patientAddress, providerAddress);
+    const tx = await contract.grantEmergencyAccess(
+      patientAddress,
+      providerAddress,
+    );
     const receipt = await tx.wait();
     return { txHash: receipt.hash, blockNumber: receipt.blockNumber };
   });
@@ -300,7 +340,9 @@ const checkAccessOnChain = async (patientAddress, providerAddress) => {
     if (!contract) return null;
     const result = await contract.checkAccess(patientAddress, providerAddress);
     return result;
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 };
 
 const getPermissionOnChain = async (patientAddress, providerAddress) => {
@@ -315,7 +357,9 @@ const getPermissionOnChain = async (patientAddress, providerAddress) => {
       expiresAt: Number(data.expiresAt),
       purpose: data.purpose,
     };
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 };
 
 // ==========================================
@@ -323,11 +367,21 @@ const getPermissionOnChain = async (patientAddress, providerAddress) => {
 // ==========================================
 
 // Admin can log consent on behalf
-const adminLogConsent = async (patientAddress, actorAddress, action, details) => {
+const adminLogConsent = async (
+  patientAddress,
+  actorAddress,
+  action,
+  details,
+) => {
   return safeTx("adminLogConsent", async () => {
     const contract = c("ConsentLedger");
     if (!contract) throw new Error("ConsentLedger not available");
-    const tx = await contract.adminLogConsent(patientAddress, actorAddress, action, details);
+    const tx = await contract.adminLogConsent(
+      patientAddress,
+      actorAddress,
+      action,
+      details,
+    );
     const receipt = await tx.wait();
     return { txHash: receipt.hash, blockNumber: receipt.blockNumber };
   });
@@ -338,7 +392,9 @@ const getPatientConsentHistory = async (patientAddress) => {
     const contract = c("ConsentLedger");
     if (!contract) return [];
     return await contract.getPatientHistory(patientAddress);
-  } catch { return []; }
+  } catch {
+    return [];
+  }
 };
 
 // ==========================================
@@ -396,7 +452,9 @@ const getPlatformStats = async () => {
       totalConsents: Number(stats[2]),
       isPaused: stats[3],
     };
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 };
 
 const checkRole = async (role, address) => {
@@ -405,7 +463,9 @@ const checkRole = async (role, address) => {
     if (!contract) return false;
     const roleHash = ethers.keccak256(ethers.toUtf8Bytes(role));
     return await contract.checkRole(roleHash, address);
-  } catch { return false; }
+  } catch {
+    return false;
+  }
 };
 
 module.exports = {

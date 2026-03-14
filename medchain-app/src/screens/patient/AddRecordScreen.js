@@ -1,5 +1,12 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, ScrollView, Alert, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Alert,
+  TouchableOpacity,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../../context/AuthContext";
 import { useWalletContext } from "../../context/WalletContext";
@@ -45,15 +52,21 @@ export default function AddRecordScreen({ navigation }) {
 
   const handleCreate = async () => {
     if (!title.trim()) return Alert.alert("Error", "Title is required");
-    if (!description.trim()) return Alert.alert("Error", "Description is required");
+    if (!description.trim())
+      return Alert.alert("Error", "Description is required");
 
     setLoading(true);
     try {
       // Prepare data
       const data = {};
-      dataFields.forEach(f => { if (f.key.trim() && f.value.trim()) data[f.key.trim()] = f.value.trim(); });
+      dataFields.forEach((f) => {
+        if (f.key.trim() && f.value.trim()) data[f.key.trim()] = f.value.trim();
+      });
 
-      const tagArray = tags.split(",").map(t => t.trim()).filter(Boolean);
+      const tagArray = tags
+        .split(",")
+        .map((t) => t.trim())
+        .filter(Boolean);
 
       // 1. Save to backend (MongoDB)
       const res = await recordAPI.create({
@@ -70,7 +83,12 @@ export default function AddRecordScreen({ navigation }) {
       // 2. Save on blockchain if enabled and wallet available
       if (saveOnChain && hasWallet && privateKey && user?.walletAddress) {
         try {
-          const contentHash = hashData({ title, description, data, recordType });
+          const contentHash = hashData({
+            title,
+            description,
+            data,
+            recordType,
+          });
 
           chainResult = await createRecordOnChain(
             privateKey,
@@ -78,7 +96,7 @@ export default function AddRecordScreen({ navigation }) {
             contentHash,
             record.ipfsURI || "",
             recordType,
-            description.trim()
+            description.trim(),
           );
 
           if (chainResult.success) {
@@ -96,8 +114,8 @@ export default function AddRecordScreen({ navigation }) {
       }
 
       const msg = chainResult?.success
-        ? `Record created!\n\nMongoDB ✅\nBlockchain ✅\nTx: ${chainResult.txHash.slice(0, 20)}...`
-        : "Record created!\n\nMongoDB ✅\nBlockchain: Skipped";
+        ? `Record created!\n\nMongoDB \nBlockchain \nTx: ${chainResult.txHash.slice(0, 20)}...`
+        : "Record created!\n\nMongoDB \nBlockchain: Skipped";
 
       Alert.alert("Success 🎉", msg, [
         { text: "OK", onPress: () => navigation.goBack() },
@@ -112,16 +130,47 @@ export default function AddRecordScreen({ navigation }) {
     <ScrollView style={styles.container} keyboardShouldPersistTaps="handled">
       <View style={styles.content}>
         <Card>
-          <Input label="Title *" icon="document-text-outline" placeholder="e.g. Blood Test Report" value={title} onChangeText={setTitle} />
-          <Input label="Description *" icon="create-outline" placeholder="Brief description" value={description} onChangeText={setDescription} multiline />
+          <Input
+            label="Title *"
+            icon="document-text-outline"
+            placeholder="e.g. Blood Test Report"
+            value={title}
+            onChangeText={setTitle}
+          />
+          <Input
+            label="Description *"
+            icon="create-outline"
+            placeholder="Brief description"
+            value={description}
+            onChangeText={setDescription}
+            multiline
+          />
 
           <Text style={styles.label}>Record Type</Text>
           <View style={styles.typeGrid}>
-            {RECORD_TYPES.map(t => (
-              <TouchableOpacity key={t.key} onPress={() => setRecordType(t.key)}
-                style={[styles.typeCard, recordType === t.key && styles.typeCardActive]} activeOpacity={0.7}>
-                <Ionicons name={t.icon} size={20} color={recordType === t.key ? COLORS.white : COLORS.primary} />
-                <Text style={[styles.typeLabel, recordType === t.key && { color: COLORS.white }]}>{t.label}</Text>
+            {RECORD_TYPES.map((t) => (
+              <TouchableOpacity
+                key={t.key}
+                onPress={() => setRecordType(t.key)}
+                style={[
+                  styles.typeCard,
+                  recordType === t.key && styles.typeCardActive,
+                ]}
+                activeOpacity={0.7}
+              >
+                <Ionicons
+                  name={t.icon}
+                  size={20}
+                  color={recordType === t.key ? COLORS.white : COLORS.primary}
+                />
+                <Text
+                  style={[
+                    styles.typeLabel,
+                    recordType === t.key && { color: COLORS.white },
+                  ]}
+                >
+                  {t.label}
+                </Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -132,12 +181,23 @@ export default function AddRecordScreen({ navigation }) {
           {dataFields.map((f, i) => (
             <View key={i} style={styles.fieldRow}>
               <View style={{ flex: 1 }}>
-                <Input placeholder="Key (e.g. Hemoglobin)" value={f.key} onChangeText={v => updateField(i, "key", v)} />
+                <Input
+                  placeholder="Key (e.g. Hemoglobin)"
+                  value={f.key}
+                  onChangeText={(v) => updateField(i, "key", v)}
+                />
               </View>
               <View style={{ flex: 1 }}>
-                <Input placeholder="Value (e.g. 14.5 g/dL)" value={f.value} onChangeText={v => updateField(i, "value", v)} />
+                <Input
+                  placeholder="Value (e.g. 14.5 g/dL)"
+                  value={f.value}
+                  onChangeText={(v) => updateField(i, "value", v)}
+                />
               </View>
-              <TouchableOpacity onPress={() => removeField(i)} style={styles.removeBtn}>
+              <TouchableOpacity
+                onPress={() => removeField(i)}
+                style={styles.removeBtn}
+              >
                 <Ionicons name="close-circle" size={22} color={COLORS.danger} />
               </TouchableOpacity>
             </View>
@@ -149,36 +209,67 @@ export default function AddRecordScreen({ navigation }) {
         </Card>
 
         <Card>
-          <Input label="Tags (comma separated)" icon="pricetags-outline" placeholder="blood-test, annual" value={tags} onChangeText={setTags} />
+          <Input
+            label="Tags (comma separated)"
+            icon="pricetags-outline"
+            placeholder="blood-test, annual"
+            value={tags}
+            onChangeText={setTags}
+          />
         </Card>
 
         {/* On-Chain Toggle */}
         <Card>
-          <TouchableOpacity onPress={() => setSaveOnChain(!saveOnChain)} style={styles.toggleRow}>
+          <TouchableOpacity
+            onPress={() => setSaveOnChain(!saveOnChain)}
+            style={styles.toggleRow}
+          >
             <View style={styles.toggleLeft}>
-              <Ionicons name="cube-outline" size={22} color={saveOnChain ? COLORS.success : COLORS.textLight} />
+              <Ionicons
+                name="cube-outline"
+                size={22}
+                color={saveOnChain ? COLORS.success : COLORS.textLight}
+              />
               <View>
                 <Text style={styles.toggleTitle}>Save on Blockchain</Text>
                 <Text style={styles.toggleDesc}>
-                  {saveOnChain ? "Record hash will be stored on Sepolia" : "Off-chain only (MongoDB)"}
+                  {saveOnChain
+                    ? "Record hash will be stored on Sepolia"
+                    : "Off-chain only (MongoDB)"}
                 </Text>
               </View>
             </View>
             <View style={[styles.toggle, saveOnChain && styles.toggleActive]}>
-              <View style={[styles.toggleDot, saveOnChain && styles.toggleDotActive]} />
+              <View
+                style={[
+                  styles.toggleDot,
+                  saveOnChain && styles.toggleDotActive,
+                ]}
+              />
             </View>
           </TouchableOpacity>
 
           {saveOnChain && !hasWallet && (
-            <Text style={styles.chainWarning}>⚠️ Private key not set. Go to Blockchain Registration first.</Text>
+            <Text style={styles.chainWarning}>
+              ⚠️ Private key not set. Go to Blockchain Registration first.
+            </Text>
           )}
 
           {saveOnChain && hasWallet && (
-            <Text style={styles.chainReady}>✅ Wallet ready. Record will be saved on-chain.</Text>
+            <Text style={styles.chainReady}>
+              {" "}
+              Wallet ready. Record will be saved on-chain.
+            </Text>
           )}
         </Card>
 
-        <Button title="Create Record" onPress={handleCreate} loading={loading} icon="checkmark-circle-outline" style={{ marginTop: 8 }} />
+        <Button
+          title="Create Record"
+          onPress={handleCreate}
+          loading={loading}
+          icon="checkmark-circle-outline"
+          style={{ marginTop: 8 }}
+        />
       </View>
     </ScrollView>
   );
@@ -187,23 +278,71 @@ export default function AddRecordScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.bg },
   content: { padding: 20, paddingBottom: 40 },
-  label: { fontSize: SIZES.sm, fontWeight: "600", color: COLORS.text, marginBottom: 8, marginTop: 12 },
+  label: {
+    fontSize: SIZES.sm,
+    fontWeight: "600",
+    color: COLORS.text,
+    marginBottom: 8,
+    marginTop: 12,
+  },
   typeGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-  typeCard: { width: "23%", paddingVertical: 10, borderRadius: 10, borderWidth: 1.5, borderColor: COLORS.border, alignItems: "center", gap: 4 },
-  typeCardActive: { borderColor: COLORS.primary, backgroundColor: COLORS.primary },
+  typeCard: {
+    width: "23%",
+    paddingVertical: 10,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: COLORS.border,
+    alignItems: "center",
+    gap: 4,
+  },
+  typeCardActive: {
+    borderColor: COLORS.primary,
+    backgroundColor: COLORS.primary,
+  },
   typeLabel: { fontSize: 10, fontWeight: "600", color: COLORS.text },
-  sectionTitle: { fontSize: SIZES.md, fontWeight: "700", color: COLORS.text, marginBottom: 12 },
-  fieldRow: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 8 },
+  sectionTitle: {
+    fontSize: SIZES.md,
+    fontWeight: "700",
+    color: COLORS.text,
+    marginBottom: 12,
+  },
+  fieldRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 8,
+  },
   removeBtn: { padding: 4 },
-  addBtn: { flexDirection: "row", alignItems: "center", gap: 6, paddingVertical: 8 },
+  addBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingVertical: 8,
+  },
   addBtnText: { fontSize: SIZES.sm, color: COLORS.primary, fontWeight: "600" },
-  toggleRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  toggleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
   toggleLeft: { flexDirection: "row", alignItems: "center", gap: 10, flex: 1 },
   toggleTitle: { fontSize: SIZES.md, fontWeight: "600", color: COLORS.text },
   toggleDesc: { fontSize: SIZES.xs, color: COLORS.textSecondary, marginTop: 2 },
-  toggle: { width: 48, height: 28, borderRadius: 14, backgroundColor: COLORS.border, padding: 2, justifyContent: "center" },
+  toggle: {
+    width: 48,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: COLORS.border,
+    padding: 2,
+    justifyContent: "center",
+  },
   toggleActive: { backgroundColor: COLORS.success },
-  toggleDot: { width: 24, height: 24, borderRadius: 12, backgroundColor: COLORS.white },
+  toggleDot: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: COLORS.white,
+  },
   toggleDotActive: { alignSelf: "flex-end" },
   chainWarning: { fontSize: SIZES.xs, color: COLORS.warning, marginTop: 8 },
   chainReady: { fontSize: SIZES.xs, color: COLORS.success, marginTop: 8 },

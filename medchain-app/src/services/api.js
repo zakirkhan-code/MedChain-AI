@@ -1,7 +1,7 @@
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const BASE_URL = "http://192.168.10.3:5000/api"; // Android emulator
+const BASE_URL = "http://192.168.100.175:5000/api"; // Android emulator
 // const BASE_URL = "http://localhost:5000/api"; // iOS simulator
 // const BASE_URL = "http://YOUR_IP:5000/api"; // Physical device
 
@@ -63,6 +63,7 @@ export const accessAPI = {
   approve: (data) => API.post("/access/approve", data),
   reject: (data) => API.post("/access/reject", data),
   getPermissions: (params) => API.get("/access/permissions", { params }),
+  getMyPatients: () => API.get("/access/my-patients"),
 };
 
 export const aiAPI = {

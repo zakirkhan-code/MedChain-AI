@@ -114,45 +114,39 @@ exports.verifyDoctor = async (req, res) => {
     if (!doctor) return res.status(404).json({ success: false, message: "Doctor not found" });
     if (doctor.isVerified) return res.status(400).json({ success: false, message: "Doctor already verified" });
 
-    let blockchainResult = null;
-    let chainError = null;
+    if (!doctor.walletAddress) {
+      return res.status(400).json({ success: false, message: "Doctor has no wallet address. Cannot verify." });
+    }
+    const blockchainResult = await blockchain.verifyDoctorOnChain(doctor.walletAddress);
 
-    // Try on-chain verify (deployer has ADMIN role)
-    if (doctor.walletAddress) {
-      blockchainResult = await blockchain.verifyDoctorOnChain(doctor.walletAddress);
-
-      if (blockchainResult.success) {
-        // Also grant DOCTOR_ROLE in MedChainCore
-        const roleResult = await blockchain.grantDoctorRole(doctor.walletAddress);
-        console.log(`✅ Doctor role granted: ${roleResult.success}`);
-
-        if (!doctor.txHashes) doctor.txHashes = [];
-        doctor.txHashes.push(blockchainResult.txHash);
-        if (roleResult.success && roleResult.txHash) {
-          doctor.txHashes.push(roleResult.txHash);
-        }
-      } else {
-        chainError = blockchainResult.message;
-        console.warn(`⚠️ On-chain verify failed: ${chainError}`);
-      }
+    if (!blockchainResult.success) {
+      return res.status(400).json({
+        success: false,
+        message: `On-chain verification failed: ${blockchainResult.message}. Doctor must submit application on blockchain first.`,
+        chainError: blockchainResult.message,
+      });
     }
 
-    // MongoDB update (always works)
+    const roleResult = await blockchain.grantDoctorRole(doctor.walletAddress);
+
+    if (!doctor.txHashes) doctor.txHashes = [];
+    doctor.txHashes.push(blockchainResult.txHash);
+    if (roleResult.success && roleResult.txHash) {
+      doctor.txHashes.push(roleResult.txHash);
+    }
+
     doctor.isVerified = true;
     doctor.verifiedBy = req.user._id;
     doctor.verifiedAt = new Date();
-    doctor.onChainStatus = blockchainResult?.success ? 2 : doctor.onChainStatus;
+    doctor.onChainStatus = 2;
     await doctor.save();
 
-    // Send notification
     await tryNotify("notifyDoctorVerified", doctor._id);
 
     res.json({
       success: true,
       data: { doctor, blockchain: blockchainResult },
-      message: blockchainResult?.success
-        ? "Doctor verified (On-chain ✓)"
-        : `Doctor verified (Off-chain only${chainError ? ": " + chainError : ""})`,
+      message: "Doctor verified (On-chain ✓ + Database ✓)",
     });
   } catch (err) {
     console.error("Verify doctor error:", err.message);
@@ -169,18 +163,24 @@ exports.rejectDoctor = async (req, res) => {
     const doctor = await User.findOne({ _id: req.params.id, role: "doctor" });
     if (!doctor) return res.status(404).json({ success: false, message: "Doctor not found" });
 
-    let blockchainResult = null;
-
-    if (doctor.walletAddress) {
-      blockchainResult = await blockchain.rejectDoctorOnChain(doctor.walletAddress, reason);
-      if (blockchainResult.success) {
-        if (!doctor.txHashes) doctor.txHashes = [];
-        doctor.txHashes.push(blockchainResult.txHash);
-      }
+    if (!doctor.walletAddress) {
+      return res.status(400).json({ success: false, message: "Doctor has no wallet address." });
     }
 
+    const blockchainResult = await blockchain.rejectDoctorOnChain(doctor.walletAddress, reason);
+
+    if (!blockchainResult.success) {
+      return res.status(400).json({
+        success: false,
+        message: `On-chain rejection failed: ${blockchainResult.message}`,
+      });
+    }
+
+    if (!doctor.txHashes) doctor.txHashes = [];
+    doctor.txHashes.push(blockchainResult.txHash);
+
     doctor.isVerified = false;
-    doctor.onChainStatus = blockchainResult?.success ? 3 : doctor.onChainStatus;
+    doctor.onChainStatus = 3;
     doctor.rejectionReason = reason;
     await doctor.save();
 
@@ -189,9 +189,7 @@ exports.rejectDoctor = async (req, res) => {
     res.json({
       success: true,
       data: { doctor, blockchain: blockchainResult },
-      message: blockchainResult?.success
-        ? "Doctor rejected (On-chain ✓)"
-        : "Doctor rejected (Off-chain only)",
+      message: "Doctor rejected (On-chain ✓ + Database ✓)",
     });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -244,25 +242,29 @@ exports.approvePatient = async (req, res) => {
     const patient = await User.findOne({ _id: req.params.id, role: "patient" });
     if (!patient) return res.status(404).json({ success: false, message: "Patient not found" });
 
-    let blockchainResult = null;
-
-    if (patient.walletAddress) {
-      blockchainResult = await blockchain.approvePatientOnChain(patient.walletAddress);
-
-      if (blockchainResult.success) {
-        // Also grant PATIENT_ROLE
-        const roleResult = await blockchain.grantPatientRole(patient.walletAddress);
-        console.log(`✅ Patient role granted: ${roleResult.success}`);
-
-        if (!patient.txHashes) patient.txHashes = [];
-        patient.txHashes.push(blockchainResult.txHash);
-        if (roleResult.success && roleResult.txHash) {
-          patient.txHashes.push(roleResult.txHash);
-        }
-      }
+    if (!patient.walletAddress) {
+      return res.status(400).json({ success: false, message: "Patient has no wallet address." });
     }
 
-    patient.onChainStatus = blockchainResult?.success ? 2 : 2;
+    const blockchainResult = await blockchain.approvePatientOnChain(patient.walletAddress);
+
+    if (!blockchainResult.success) {
+      return res.status(400).json({
+        success: false,
+        message: `On-chain approval failed: ${blockchainResult.message}. Patient must submit registration on blockchain first.`,
+      });
+    }
+
+    // Grant PATIENT_ROLE
+    const roleResult = await blockchain.grantPatientRole(patient.walletAddress);
+
+    if (!patient.txHashes) patient.txHashes = [];
+    patient.txHashes.push(blockchainResult.txHash);
+    if (roleResult.success && roleResult.txHash) {
+      patient.txHashes.push(roleResult.txHash);
+    }
+
+    patient.onChainStatus = 2;
     await patient.save();
 
     await tryNotify("notifyPatientApproved", patient._id);
@@ -270,9 +272,7 @@ exports.approvePatient = async (req, res) => {
     res.json({
       success: true,
       data: { patient, blockchain: blockchainResult },
-      message: blockchainResult?.success
-        ? "Patient approved (On-chain ✓)"
-        : "Patient approved (Off-chain only)",
+      message: "Patient approved (On-chain ✓ + Database ✓)",
     });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -288,26 +288,30 @@ exports.rejectPatient = async (req, res) => {
     const patient = await User.findOne({ _id: req.params.id, role: "patient" });
     if (!patient) return res.status(404).json({ success: false, message: "Patient not found" });
 
-    let blockchainResult = null;
-
-    if (patient.walletAddress) {
-      blockchainResult = await blockchain.rejectPatientOnChain(patient.walletAddress, reason);
-      if (blockchainResult.success) {
-        if (!patient.txHashes) patient.txHashes = [];
-        patient.txHashes.push(blockchainResult.txHash);
-      }
+    if (!patient.walletAddress) {
+      return res.status(400).json({ success: false, message: "Patient has no wallet address." });
     }
 
-    patient.onChainStatus = blockchainResult?.success ? 3 : 3;
+    const blockchainResult = await blockchain.rejectPatientOnChain(patient.walletAddress, reason);
+
+    if (!blockchainResult.success) {
+      return res.status(400).json({
+        success: false,
+        message: `On-chain rejection failed: ${blockchainResult.message}`,
+      });
+    }
+
+    if (!patient.txHashes) patient.txHashes = [];
+    patient.txHashes.push(blockchainResult.txHash);
+
+    patient.onChainStatus = 3;
     patient.rejectionReason = reason;
     await patient.save();
 
     res.json({
       success: true,
       data: { patient, blockchain: blockchainResult },
-      message: blockchainResult?.success
-        ? "Patient rejected (On-chain ✓)"
-        : "Patient rejected (Off-chain only)",
+      message: "Patient rejected (On-chain ✓ + Database ✓)",
     });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });

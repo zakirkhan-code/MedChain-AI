@@ -1,10 +1,21 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, ScrollView, Alert, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Alert,
+  TouchableOpacity,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../../context/AuthContext";
 import { useWalletContext } from "../../context/WalletContext";
 import { doctorAPI, accessAPI } from "../../services/api";
-import { grantAccessOnChain, revokeAccessOnChain, checkAccess } from "../../services/blockchain";
+import {
+  grantAccessOnChain,
+  revokeAccessOnChain,
+  checkAccess,
+} from "../../services/blockchain";
 import { Button, Card, Badge } from "../../components/common";
 import { COLORS, SIZES } from "../../utils/theme";
 
@@ -29,7 +40,10 @@ export default function DoctorDetailScreen({ route, navigation }) {
 
       // Check on-chain access
       if (user?.walletAddress && res.data.data?.walletAddress) {
-        const access = await checkAccess(user.walletAddress, res.data.data.walletAddress);
+        const access = await checkAccess(
+          user.walletAddress,
+          res.data.data.walletAddress,
+        );
         setHasAccess(access);
       }
     } catch (err) {
@@ -54,7 +68,7 @@ export default function DoctorDetailScreen({ route, navigation }) {
           "ReadOnly",
           duration,
           allowedTypes,
-          "Patient granted access via MedChain App"
+          "Patient granted access via MedChain App",
         );
 
         if (!chainResult.success) {
@@ -72,8 +86,8 @@ export default function DoctorDetailScreen({ route, navigation }) {
       });
 
       const msg = chainResult?.success
-        ? `Access granted!\n\nBackend ✅\nBlockchain ✅\nTx: ${chainResult.txHash.slice(0, 20)}...`
-        : "Access granted!\n\nBackend ✅\nBlockchain: Skipped";
+        ? `Access granted!\n\nBackend \nBlockchain \nTx: ${chainResult.txHash.slice(0, 20)}...`
+        : "Access granted!\n\nBackend \nBlockchain: Skipped";
 
       Alert.alert("Success 🎉", msg);
       setHasAccess(true);
@@ -84,40 +98,47 @@ export default function DoctorDetailScreen({ route, navigation }) {
   };
 
   const handleRevokeAccess = async () => {
-    Alert.alert("Revoke Access", `Remove ${doctor?.name}'s access to your records?`, [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Revoke",
-        style: "destructive",
-        onPress: async () => {
-          setActionLoading(true);
-          try {
-            let chainResult = null;
+    Alert.alert(
+      "Revoke Access",
+      `Remove ${doctor?.name}'s access to your records?`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Revoke",
+          style: "destructive",
+          onPress: async () => {
+            setActionLoading(true);
+            try {
+              let chainResult = null;
 
-            // 1. On-chain revoke
-            if (hasWallet && privateKey && doctor?.walletAddress) {
-              chainResult = await revokeAccessOnChain(privateKey, doctor.walletAddress);
-              if (!chainResult.success) {
-                console.warn("On-chain revoke failed:", chainResult.message);
+              // 1. On-chain revoke
+              if (hasWallet && privateKey && doctor?.walletAddress) {
+                chainResult = await revokeAccessOnChain(
+                  privateKey,
+                  doctor.walletAddress,
+                );
+                if (!chainResult.success) {
+                  console.warn("On-chain revoke failed:", chainResult.message);
+                }
               }
+
+              // 2. Backend revoke
+              await accessAPI.revokeAccess({ doctorId });
+
+              const msg = chainResult?.success
+                ? `Access revoked!\n\nBackend \nBlockchain `
+                : "Access revoked!\n\nBackend ";
+
+              Alert.alert("Done", msg);
+              setHasAccess(false);
+            } catch (err) {
+              Alert.alert("Error", err.response?.data?.message || err.message);
             }
-
-            // 2. Backend revoke
-            await accessAPI.revokeAccess({ doctorId });
-
-            const msg = chainResult?.success
-              ? `Access revoked!\n\nBackend ✅\nBlockchain ✅`
-              : "Access revoked!\n\nBackend ✅";
-
-            Alert.alert("Done", msg);
-            setHasAccess(false);
-          } catch (err) {
-            Alert.alert("Error", err.response?.data?.message || err.message);
-          }
-          setActionLoading(false);
+            setActionLoading(false);
+          },
         },
-      },
-    ]);
+      ],
+    );
   };
 
   const handleRate = async (stars) => {
@@ -157,10 +178,16 @@ export default function DoctorDetailScreen({ route, navigation }) {
               <Ionicons name="person" size={40} color={COLORS.white} />
             </View>
             <Text style={styles.name}>{doctor.name}</Text>
-            <Text style={styles.specialization}>{doctor.specialization || "General"}</Text>
+            <Text style={styles.specialization}>
+              {doctor.specialization || "General"}
+            </Text>
             {doctor.isVerified && (
               <View style={styles.verifiedBadge}>
-                <Ionicons name="checkmark-circle" size={16} color={COLORS.success} />
+                <Ionicons
+                  name="checkmark-circle"
+                  size={16}
+                  color={COLORS.success}
+                />
                 <Text style={styles.verifiedText}>Verified Doctor</Text>
               </View>
             )}
@@ -178,7 +205,10 @@ export default function DoctorDetailScreen({ route, navigation }) {
           <View style={styles.infoRow}>
             <Ionicons name="star" size={18} color={COLORS.warning} />
             <Text style={styles.infoLabel}>Rating:</Text>
-            <Text style={styles.infoValue}>{doctor.rating?.toFixed(1) || "0"} ({doctor.ratingCount || 0} reviews)</Text>
+            <Text style={styles.infoValue}>
+              {doctor.rating?.toFixed(1) || "0"} ({doctor.ratingCount || 0}{" "}
+              reviews)
+            </Text>
           </View>
           <View style={styles.infoRow}>
             <Ionicons name="people" size={18} color={COLORS.info} />
@@ -189,7 +219,15 @@ export default function DoctorDetailScreen({ route, navigation }) {
             <View style={styles.infoRow}>
               <Ionicons name="wallet" size={18} color={COLORS.secondary} />
               <Text style={styles.infoLabel}>Wallet:</Text>
-              <Text style={[styles.infoValue, { fontFamily: "monospace", fontSize: 11 }]}>{doctor.walletAddress.slice(0, 12)}...{doctor.walletAddress.slice(-6)}</Text>
+              <Text
+                style={[
+                  styles.infoValue,
+                  { fontFamily: "monospace", fontSize: 11 },
+                ]}
+              >
+                {doctor.walletAddress.slice(0, 12)}...
+                {doctor.walletAddress.slice(-6)}
+              </Text>
             </View>
           )}
         </Card>
@@ -217,9 +255,13 @@ export default function DoctorDetailScreen({ route, navigation }) {
         <Card>
           <Text style={styles.sectionTitle}>Rate This Doctor</Text>
           <View style={styles.starRow}>
-            {[1, 2, 3, 4, 5].map(s => (
+            {[1, 2, 3, 4, 5].map((s) => (
               <TouchableOpacity key={s} onPress={() => handleRate(s)}>
-                <Ionicons name={s <= rating ? "star" : "star-outline"} size={32} color={COLORS.warning} />
+                <Ionicons
+                  name={s <= rating ? "star" : "star-outline"}
+                  size={32}
+                  color={COLORS.warning}
+                />
               </TouchableOpacity>
             ))}
           </View>
@@ -232,26 +274,54 @@ export default function DoctorDetailScreen({ route, navigation }) {
           {hasAccess ? (
             <View>
               <View style={styles.accessActive}>
-                <Ionicons name="shield-checkmark" size={24} color={COLORS.success} />
+                <Ionicons
+                  name="shield-checkmark"
+                  size={24}
+                  color={COLORS.success}
+                />
                 <View style={{ flex: 1 }}>
                   <Text style={styles.accessTitle}>Access Granted</Text>
-                  <Text style={styles.accessDesc}>This doctor can view your records</Text>
+                  <Text style={styles.accessDesc}>
+                    This doctor can view your records
+                  </Text>
                 </View>
               </View>
-              <Button title="Revoke Access" onPress={handleRevokeAccess} loading={actionLoading} variant="danger" icon="close-circle-outline" style={{ marginTop: 12 }} />
+              <Button
+                title="Revoke Access"
+                onPress={handleRevokeAccess}
+                loading={actionLoading}
+                variant="danger"
+                icon="close-circle-outline"
+                style={{ marginTop: 12 }}
+              />
             </View>
           ) : (
             <View>
-              <Text style={styles.accessDesc}>Grant this doctor read-only access to your medical records for 30 days.</Text>
+              <Text style={styles.accessDesc}>
+                Grant this doctor read-only access to your medical records for
+                30 days.
+              </Text>
 
               {hasWallet && (
-                <Text style={styles.chainReady}>✅ Access will be recorded on blockchain</Text>
+                <Text style={styles.chainReady}>
+                  {" "}
+                  Access will be recorded on blockchain
+                </Text>
               )}
               {!hasWallet && (
-                <Text style={styles.chainWarning}>⚠️ Set private key in Blockchain Registration for on-chain access</Text>
+                <Text style={styles.chainWarning}>
+                  ⚠️ Set private key in Blockchain Registration for on-chain
+                  access
+                </Text>
               )}
 
-              <Button title="Grant Record Access (30 Days)" onPress={handleGrantAccess} loading={actionLoading} icon="shield-checkmark-outline" style={{ marginTop: 12 }} />
+              <Button
+                title="Grant Record Access (30 Days)"
+                onPress={handleGrantAccess}
+                loading={actionLoading}
+                icon="shield-checkmark-outline"
+                style={{ marginTop: 12 }}
+              />
             </View>
           )}
         </Card>
@@ -266,19 +336,73 @@ const styles = StyleSheet.create({
   loadingContainer: { flex: 1, alignItems: "center", justifyContent: "center" },
   loadingText: { fontSize: SIZES.md, color: COLORS.textSecondary },
   profileHeader: { alignItems: "center", paddingVertical: 16 },
-  avatar: { width: 80, height: 80, borderRadius: 40, backgroundColor: COLORS.primary, alignItems: "center", justifyContent: "center", marginBottom: 12 },
+  avatar: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: COLORS.primary,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 12,
+  },
   name: { fontSize: SIZES.xl, fontWeight: "700", color: COLORS.text },
   specialization: { fontSize: SIZES.md, color: COLORS.primary, marginTop: 4 },
-  verifiedBadge: { flexDirection: "row", alignItems: "center", gap: 4, marginTop: 8, backgroundColor: COLORS.success + "15", paddingHorizontal: 12, paddingVertical: 4, borderRadius: 20 },
-  verifiedText: { fontSize: SIZES.sm, color: COLORS.success, fontWeight: "600" },
-  sectionTitle: { fontSize: SIZES.md, fontWeight: "700", color: COLORS.text, marginBottom: 12 },
-  infoRow: { flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: COLORS.border },
+  verifiedBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    marginTop: 8,
+    backgroundColor: COLORS.success + "15",
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 20,
+  },
+  verifiedText: {
+    fontSize: SIZES.sm,
+    color: COLORS.success,
+    fontWeight: "600",
+  },
+  sectionTitle: {
+    fontSize: SIZES.md,
+    fontWeight: "700",
+    color: COLORS.text,
+    marginBottom: 12,
+  },
+  infoRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
   infoLabel: { fontSize: SIZES.sm, color: COLORS.textSecondary, width: 70 },
-  infoValue: { fontSize: SIZES.sm, color: COLORS.text, fontWeight: "500", flex: 1 },
-  starRow: { flexDirection: "row", justifyContent: "center", gap: 8, paddingVertical: 8 },
-  accessActive: { flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: COLORS.success + "10", padding: 12, borderRadius: 12 },
+  infoValue: {
+    fontSize: SIZES.sm,
+    color: COLORS.text,
+    fontWeight: "500",
+    flex: 1,
+  },
+  starRow: {
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 8,
+    paddingVertical: 8,
+  },
+  accessActive: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    backgroundColor: COLORS.success + "10",
+    padding: 12,
+    borderRadius: 12,
+  },
   accessTitle: { fontSize: SIZES.md, fontWeight: "700", color: COLORS.success },
-  accessDesc: { fontSize: SIZES.sm, color: COLORS.textSecondary, lineHeight: 20 },
+  accessDesc: {
+    fontSize: SIZES.sm,
+    color: COLORS.textSecondary,
+    lineHeight: 20,
+  },
   chainReady: { fontSize: SIZES.xs, color: COLORS.success, marginTop: 8 },
   chainWarning: { fontSize: SIZES.xs, color: COLORS.warning, marginTop: 8 },
 });

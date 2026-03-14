@@ -10,7 +10,8 @@ const ADDRESSES = {
   ConsentLedger: "0xE19f3AE604Ce7a74788EC34c34FF5717c24d5471",
 };
 
-const RPC_URL = "https://eth-sepolia.g.alchemy.com/v2/o3bRe0lLz7rIfkhWPxx-rETKggQzl1GB";
+const RPC_URL =
+  "https://eth-sepolia.g.alchemy.com/v2/o3bRe0lLz7rIfkhWPxx-rETKggQzl1GB";
 
 // Read-only provider (no wallet needed)
 export const getProvider = () => {
@@ -39,10 +40,15 @@ export const hashData = (data) => {
 //  PATIENT FUNCTIONS
 // ==========================================
 
-export const patientSubmitRegistration = async (privateKey, profileData, bloodType, allergies) => {
+export const patientSubmitRegistration = async (
+  privateKey,
+  profileData,
+  bloodType,
+  allergies,
+) => {
   try {
     const contract = getSignedContract("PatientRegistry", privateKey);
-    const profileHash = hashData(profileData);
+    const profileHash = hashData({ ...profileData, timestamp: Date.now(), random: Math.random().toString() });
     const encryptedDataURI = `ipfs://medchain/patient/${Date.now()}`;
 
     console.log("📤 Submitting patient registration on-chain...");
@@ -50,11 +56,11 @@ export const patientSubmitRegistration = async (privateKey, profileData, bloodTy
       profileHash,
       encryptedDataURI,
       bloodType || "",
-      allergies || ""
+      allergies || "",
     );
     console.log("⏳ Waiting for confirmation...", tx.hash);
     const receipt = await tx.wait();
-    console.log("✅ Patient registered on-chain! Block:", receipt.blockNumber);
+    console.log(" Patient registered on-chain! Block:", receipt.blockNumber);
 
     return {
       success: true,
@@ -75,8 +81,12 @@ export const patientGiveConsent = async (privateKey) => {
     console.log("📤 Giving consent...");
     const tx = await contract.giveConsent();
     const receipt = await tx.wait();
-    console.log("✅ Consent given! Patient is now Active");
-    return { success: true, txHash: receipt.hash, blockNumber: receipt.blockNumber };
+    console.log(" Consent given! Patient is now Active");
+    return {
+      success: true,
+      txHash: receipt.hash,
+      blockNumber: receipt.blockNumber,
+    };
   } catch (err) {
     return { success: false, message: err.reason || err.message };
   }
@@ -96,10 +106,19 @@ export const getPatientStatus = async (walletAddress) => {
 //  DOCTOR FUNCTIONS
 // ==========================================
 
-export const doctorSubmitApplication = async (privateKey, credentials, specialization, licenseNumber) => {
+export const doctorSubmitApplication = async (
+  privateKey,
+  credentials,
+  specialization,
+  licenseNumber,
+) => {
   try {
     const contract = getSignedContract("DoctorRegistry", privateKey);
-    const credentialHash = hashData({ credentials, specialization, licenseNumber });
+    const credentialHash = hashData({
+      credentials,
+      specialization,
+      licenseNumber,
+    });
     const encryptedDataURI = `ipfs://medchain/doctor/${Date.now()}`;
     const documentURI = `ipfs://medchain/doctor-docs/${Date.now()}`;
 
@@ -109,11 +128,14 @@ export const doctorSubmitApplication = async (privateKey, credentials, specializ
       encryptedDataURI,
       specialization,
       licenseNumber,
-      documentURI
+      documentURI,
     );
     console.log("⏳ Waiting for confirmation...", tx.hash);
     const receipt = await tx.wait();
-    console.log("✅ Doctor application submitted on-chain! Block:", receipt.blockNumber);
+    console.log(
+      " Doctor application submitted on-chain! Block:",
+      receipt.blockNumber,
+    );
 
     return {
       success: true,
@@ -141,10 +163,26 @@ export const getDoctorStatus = async (walletAddress) => {
 //  RECORD FUNCTIONS
 // ==========================================
 
-export const createRecordOnChain = async (privateKey, patientAddress, contentHash, ipfsURI, recordType, description) => {
+export const createRecordOnChain = async (
+  privateKey,
+  patientAddress,
+  contentHash,
+  ipfsURI,
+  recordType,
+  description,
+) => {
   try {
     const contract = getSignedContract("RecordManager", privateKey);
-    const typeMap = { LabReport: 0, Prescription: 1, Imaging: 2, Diagnosis: 3, Vaccination: 4, Surgery: 5, Discharge: 6, Other: 7 };
+    const typeMap = {
+      LabReport: 0,
+      Prescription: 1,
+      Imaging: 2,
+      Diagnosis: 3,
+      Vaccination: 4,
+      Surgery: 5,
+      Discharge: 6,
+      Other: 7,
+    };
     const typeNum = typeMap[recordType] !== undefined ? typeMap[recordType] : 7;
     const encryptionKeyHash = hashData({ key: Date.now() });
 
@@ -155,11 +193,15 @@ export const createRecordOnChain = async (privateKey, patientAddress, contentHas
       ipfsURI || "",
       encryptionKeyHash,
       typeNum,
-      description || ""
+      description || "",
     );
     const receipt = await tx.wait();
-    console.log("✅ Record created on-chain!");
-    return { success: true, txHash: receipt.hash, blockNumber: receipt.blockNumber };
+    console.log(" Record created on-chain!");
+    return {
+      success: true,
+      txHash: receipt.hash,
+      blockNumber: receipt.blockNumber,
+    };
   } catch (err) {
     return { success: false, message: err.reason || err.message };
   }
@@ -169,10 +211,17 @@ export const createRecordOnChain = async (privateKey, patientAddress, contentHas
 //  ACCESS CONTROL FUNCTIONS
 // ==========================================
 
-export const grantAccessOnChain = async (privateKey, providerAddress, level, duration, allowedTypes, purpose) => {
+export const grantAccessOnChain = async (
+  privateKey,
+  providerAddress,
+  level,
+  duration,
+  allowedTypes,
+  purpose,
+) => {
   try {
     const contract = getSignedContract("MedChainAccessControl", privateKey);
-    const levelNum = level === "ReadWrite" ? 1 : 0;
+    const levelNum = level === "ReadWrite" ? 2 : 1;
 
     console.log("📤 Granting access on-chain...");
     const tx = await contract.grantAccess(
@@ -180,11 +229,16 @@ export const grantAccessOnChain = async (privateKey, providerAddress, level, dur
       levelNum,
       duration,
       allowedTypes,
-      purpose || ""
+      purpose || "",
+      { gasLimit: 1000000 }
     );
     const receipt = await tx.wait();
-    console.log("✅ Access granted on-chain!");
-    return { success: true, txHash: receipt.hash, blockNumber: receipt.blockNumber };
+    console.log(" Access granted on-chain!");
+    return {
+      success: true,
+      txHash: receipt.hash,
+      blockNumber: receipt.blockNumber,
+    };
   } catch (err) {
     return { success: false, message: err.reason || err.message };
   }
@@ -195,7 +249,11 @@ export const revokeAccessOnChain = async (privateKey, providerAddress) => {
     const contract = getSignedContract("MedChainAccessControl", privateKey);
     const tx = await contract.revokeAccess(providerAddress);
     const receipt = await tx.wait();
-    return { success: true, txHash: receipt.hash, blockNumber: receipt.blockNumber };
+    return {
+      success: true,
+      txHash: receipt.hash,
+      blockNumber: receipt.blockNumber,
+    };
   } catch (err) {
     return { success: false, message: err.reason || err.message };
   }
@@ -230,6 +288,19 @@ export const checkAccess = async (patientAddress, providerAddress) => {
 };
 
 export const STATUS_MAP = {
-  patient: { 0: "None", 1: "Pending", 2: "Approved", 3: "Rejected", 4: "Active", 5: "Deactivated" },
-  doctor: { 0: "None", 1: "Pending", 2: "Verified", 3: "Rejected", 4: "Suspended" },
+  patient: {
+    0: "None",
+    1: "Pending",
+    2: "Approved",
+    3: "Rejected",
+    4: "Active",
+    5: "Deactivated",
+  },
+  doctor: {
+    0: "None",
+    1: "Pending",
+    2: "Verified",
+    3: "Rejected",
+    4: "Suspended",
+  },
 };

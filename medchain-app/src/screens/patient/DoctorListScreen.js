@@ -30,7 +30,7 @@ export default function DoctorListScreen({ navigation }) {
   );
 
   const renderDoctor = ({ item }) => (
-    <Card onPress={() => navigation.navigate("DoctorDetail", { id: item._id, doctor: item })}>
+    <Card onPress={() => navigation.navigate("DoctorDetail", { doctorId: item._id, doctor: item })}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
         <View style={styles.avatar}>
           <Text style={styles.avatarText}>{item.name?.charAt(0)}</Text>

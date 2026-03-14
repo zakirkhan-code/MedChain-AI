@@ -26,7 +26,7 @@ const getAccessToken = async () => {
         exp: now + 3600,
       },
       privateKey,
-      { algorithm: "RS256" }
+      { algorithm: "RS256" },
     );
 
     const res = await axios.post("https://oauth2.googleapis.com/token", {
@@ -56,28 +56,43 @@ const sendPushNotification = async (fcmToken, title, body, data = {}) => {
         message: {
           token: fcmToken,
           notification: { title, body },
-          data: Object.fromEntries(Object.entries(data).map(([k, v]) => [k, String(v)])),
-          android: { priority: "high", notification: { sound: "default", channel_id: "medchain" } },
+          data: Object.fromEntries(
+            Object.entries(data).map(([k, v]) => [k, String(v)]),
+          ),
+          android: {
+            priority: "high",
+            notification: { sound: "default", channel_id: "medchain" },
+          },
           apns: { payload: { aps: { sound: "default", badge: 1 } } },
         },
       },
-      { headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" } }
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      },
     );
 
     return { success: true, messageId: res.data.name };
   } catch (error) {
-    console.error("Push notification error:", error.response?.data || error.message);
+    console.error(
+      "Push notification error:",
+      error.response?.data || error.message,
+    );
     return { success: false, message: error.message };
   }
 };
 
 const sendToMultiple = async (fcmTokens, title, body, data = {}) => {
   const results = await Promise.allSettled(
-    fcmTokens.map((token) => sendPushNotification(token, title, body, data))
+    fcmTokens.map((token) => sendPushNotification(token, title, body, data)),
   );
   return results.map((r, i) => ({
     token: fcmTokens[i],
-    ...(r.status === "fulfilled" ? r.value : { success: false, message: r.reason?.message }),
+    ...(r.status === "fulfilled"
+      ? r.value
+      : { success: false, message: r.reason?.message }),
   }));
 };
 
@@ -95,7 +110,7 @@ const NOTIFICATION_TEMPLATES = {
     body: `${patientName} revoked your access to their records`,
   }),
   DOCTOR_VERIFIED: () => ({
-    title: "Credentials Verified! ✅",
+    title: "Credentials Verified! ",
     body: "Your medical credentials have been verified. You now have full platform access.",
   }),
   DOCTOR_REJECTED: (reason) => ({
@@ -103,7 +118,7 @@ const NOTIFICATION_TEMPLATES = {
     body: `Your credentials were rejected: ${reason}`,
   }),
   PATIENT_APPROVED: () => ({
-    title: "Registration Approved! ✅",
+    title: "Registration Approved! ",
     body: "Your registration has been approved. Please give consent to activate your account.",
   }),
   RECORD_ADDED: (title) => ({
